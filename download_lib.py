@@ -4,3 +4,7 @@ def install():
         import requests
     except ImportError:
         os.system("pip install requests")
+    try:
+        import colorama
+    except ImportError:
+        os.system("pip install colorama")
