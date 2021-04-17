@@ -77,9 +77,9 @@ try:
             clearClip()
         except:
             pass
+        root = tkinter.Tk()
+        root.withdraw()
         while True:
-            root = tkinter.Tk()
-            root.withdraw()
             try:
                 if 'https://www.instagram.com/p/' in root.clipboard_get():
                     url =  root.clipboard_get()
