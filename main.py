@@ -56,8 +56,12 @@ try:
         data=data,
         headers=headers)
         if rl.status_code != 429:
-            sessionid = rl.cookies.get_dict()['sessionid']
-            userid = rl.cookies.get_dict()['ds_user_id']
+            try:
+                sessionid = rl.cookies.get_dict()['sessionid']
+                userid = rl.cookies.get_dict()['ds_user_id']
+            except:
+                input(Fore.RED+"SomeThing Went Wrong in login!")
+                exit(1)
         else:
             input(Fore.RED+"You Get Blocked Press Enter")
             exit(1)
