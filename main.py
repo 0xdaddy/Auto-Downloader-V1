@@ -90,6 +90,19 @@ try:
                         url = f"https://www.instagram.com/p/{url}/"
                     except:pass
                     break
+                elif 'https://www.instagram.com/' in root.clipboard_get():
+                    url =  root.clipboard_get()
+                    try:
+                        url = search(r"https://www.instagram.com/(.*?)/.*", str(url)).group(1)
+                        url = f"https://www.instagram.com/{url}/?__a=1"
+                        r = requests.get(url,headers={
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36',
+        'cookie': f'ig_did=BA986F43-2024-41AB-8C92-0C1D2EE021F4; ig_nrcb=1; mid=YGLS9wALAAFmkgUh9_H2-55YnsOx; shbid=5749; rur=RVA; shbts=1618591091.331925; csrftoken=Is7aXNh5dLawmwrBw9C1z0bhqc4Kx07b; ds_user_id={userid}; sessionid={sessionid}'
+        })              
+                        ids = r.json()['graphql']['user']['id']
+                        user= r.json()['graphql']['user']['username']
+                        return story_grab(ids, user)
+                    except:return getClip()
             except:
                 pass
         return main(url)
@@ -108,12 +121,13 @@ try:
             print(Fore.RED+"video Already Downloaded !")
             pass
         else:
+            print(Fore.YELLOW)
             urllib.request.urlretrieve(video_url, file_name, reporthook)
         clearClip()
-        print(Fore.GREEN+"[+] Done Download")
+        print(Fore.GREEN+"[+] Done")
         sleep(3)
         return getClip()
-    def reporthook(blocknum, blocksize, totalsize):
+    def reporthook(blocknum, blocksize, totalsize):    
         readsofar = blocknum * blocksize
         if totalsize > 0:
             percent = readsofar * 1e2 / totalsize
@@ -124,6 +138,124 @@ try:
                 sys.stderr.write("\n")
         else:
             sys.stderr.write("read %d\n" % (readsofar,))
+
+    def story_grab(ids , owner):
+        def download_all(ids, owner):
+                url = 'https://www.instagram.com/graphql/query/?query_hash=303a4ae99711322310f25250d988f3b7&variables={"reel_ids":["'+ids+'"],"tag_names":[],"location_ids":[],"highlight_reel_ids":[],"precomposed_overlay":false,"show_story_viewer_list":true,"story_viewer_fetch_count":50}'
+                r = requests.get(url, headers={
+                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36',
+                'cookie': f'ig_did=BA986F43-2024-41AB-8C92-0C1D2EE021F4; ig_nrcb=1; mid=YGLS9wALAAFmkgUh9_H2-55YnsOx; shbid=5749; rur=RVA; shbts=1618591091.331925; csrftoken=Is7aXNh5dLawmwrBw9C1z0bhqc4Kx07b; ds_user_id={userid}; sessionid={sessionid}'
+
+                })
+                _json = r.json()['data']['reels_media'][0]['items']
+                for __json in _json:
+                    vid = __json['is_video']
+                    if vid:
+                        vid_name= __json['id']
+                        local_path = os.getcwd() + f'\\{owner}'
+                        if os.path.exists(local_path):
+                                pass
+                        else:
+                            os.mkdir(local_path)
+                        file_name = local_path + '\\' + str(vid_name) + ".mp4"
+                        if os.path.exists(file_name):
+                                print(Fore.RED+"Video Already Downloaded !")
+                                pass
+                        else:  
+                            for url in __json['video_resources']:
+                                url = url['src']
+                                print(Fore.YELLOW)
+                                urllib.request.urlretrieve(url, file_name, reporthook)
+                                break
+                    else:
+                        url = __json['display_url']
+                        pic_name = __json['id']
+                        local_path = os.getcwd() + f'\\{owner}'
+                        if os.path.exists(local_path):
+                                pass
+                        else:
+                            os.mkdir(local_path)
+                        file_name = local_path + '\\' + str(pic_name) + ".jpg"
+                        if os.path.exists(file_name):
+                                print(Fore.RED+"Pic Already Downloaded !")
+                                pass
+                        else:  
+                            print(Fore.YELLOW)
+                            urllib.request.urlretrieve(url, file_name, reporthook)
+                
+        i = 0
+        picnvid = []
+        urls = []
+        vid_dict = {}
+        pic_dict = {}
+        url = 'https://www.instagram.com/graphql/query/?query_hash=303a4ae99711322310f25250d988f3b7&variables={"reel_ids":["'+ids+'"],"tag_names":[],"location_ids":[],"highlight_reel_ids":[],"precomposed_overlay":false,"show_story_viewer_list":true,"story_viewer_fetch_count":50}'
+        r = requests.get(url, headers={
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36',
+        'cookie': f'ig_did=BA986F43-2024-41AB-8C92-0C1D2EE021F4; ig_nrcb=1; mid=YGLS9wALAAFmkgUh9_H2-55YnsOx; shbid=5749; rur=RVA; shbts=1618591091.331925; csrftoken=Is7aXNh5dLawmwrBw9C1z0bhqc4Kx07b; ds_user_id={userid}; sessionid={sessionid}'
+
+        })
+        _json = r.json()['data']['reels_media'][0]['items']
+        print('Do You Want To Download :')
+        for __json in _json:
+            vid = __json['is_video']
+            if vid:
+                
+                for url in __json['video_resources']:
+                    url = url['src']
+                    i += 1
+                    picnvid.append(i)
+                    urls.append(url)
+                    vid_dict[i] = url 
+                    print(f"{i}'s- Video")
+                    break
+            else:
+                url = __json['display_url']
+                i +=1
+                picnvid.append(i)
+                urls.append(url)
+                pic_dict[i] = url
+                print(f"{i}'s- Pic")
+        print('[0] Download All')
+        mod = int(input("Choose:"))
+        if mod == 0:
+            download_all(ids, owner)
+        else:
+            for _ in picnvid:
+                if mod == _:
+                    try:
+                                url = vid_dict[mod]
+                                _name = __json['id']
+                                local_path = os.getcwd() + f'\\{owner}'
+                                if os.path.exists(local_path):
+                                    pass
+                                else:
+                                    os.mkdir(local_path)
+                                file_name = local_path + '\\' +str(_name)+'.mp4'
+                                if os.path.exists(file_name):
+                                    print(Fore.RED+"video Already Downloaded !")
+                                    pass
+                                else:
+                                    print(Fore.YELLOW)
+                                    urllib.request.urlretrieve(url, file_name, reporthook)
+                    except:
+                                url = pic_dict[mod]
+                                _name = __json['id']
+                                local_path = os.getcwd() + f'\\{owner}'
+                                if os.path.exists(local_path):
+                                    pass
+                                else:
+                                    os.mkdir(local_path)
+                                file_name = local_path + '\\' +str(_name)+'.jpg'
+                                if os.path.exists(file_name):
+                                    print(Fore.RED+"pic Already Downloaded !")
+                                    pass
+                                else:
+                                    print(Fore.YELLOW)
+                                    urllib.request.urlretrieve(url, file_name, reporthook)
+        clearClip()
+        print(Fore.GREEN+"[+] Done")
+        sleep(3)
+        return getClip()
     def side_bar(r):
             def download_all(r):
                     side_ = r.json()['graphql']['shortcode_media']['edge_sidecar_to_children']['edges']
@@ -143,6 +275,7 @@ try:
                                 print(Fore.RED+"video Already Downloaded !")
                                 pass
                             else:
+                                print(Fore.YELLOW)
                                 urllib.request.urlretrieve(side_url, file_name, reporthook)
                         else:
                             side_url = side_['node']['display_url']
@@ -157,6 +290,7 @@ try:
                                 print(Fore.RED+"pic Already Downloaded !")
                                 pass
                             else:
+                                print(Fore.YELLOW)
                                 urllib.request.urlretrieve(side_url, file_name, reporthook)
             i = 0
             picnvid = []
@@ -181,6 +315,7 @@ try:
                     pic_dict[i] = side_url
                     print(f"{i}'s- Pic")
             
+            
             print('[0] Download All')
             print('[99] Exit')
             mod = int(input('Choose :'))
@@ -204,6 +339,7 @@ try:
                                     print(Fore.RED+"video Already Downloaded !")
                                     pass
                                 else:
+                                    print(Fore.YELLOW)
                                     urllib.request.urlretrieve(url, file_name, reporthook)
                             except:
                                 url = pic_dict[mod]
@@ -218,9 +354,10 @@ try:
                                     print(Fore.RED+"pic Already Downloaded !")
                                     pass
                                 else:
+                                    print(Fore.YELLOW)
                                     urllib.request.urlretrieve(side_url, file_name, reporthook)
             clearClip()
-            print(Fore.GREEN+"[+] Done Download")
+            print(Fore.GREEN+"[+] Done")
             sleep(3)
             return getClip()
     def pic(r):
@@ -237,9 +374,10 @@ try:
             print(Fore.RED+"pic Already Downloaded !")
             pass
         else:
+            print(Fore.YELLOW)
             urllib.request.urlretrieve(pic_url, file_name, reporthook)
         clearClip()
-        print(Fore.GREEN+"[+] Done Download")
+        print(Fore.GREEN+"[+] Done")
         sleep(3)
         return getClip()
     def main(url):
@@ -272,5 +410,3 @@ try:
             getClip()
 except KeyboardInterrupt:
    stop()
-
-
