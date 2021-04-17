@@ -1,12 +1,12 @@
-from requests.api import head
 from download_lib import install
 install()
+from re import search
 import tkinter
 import requests
 import os
 import urllib.request
 import sys
-from colorama import Fore, Style
+from colorama import Fore
 from time import sleep, time
 try:
     def banner():
@@ -79,6 +79,10 @@ try:
             try:
                 if 'https://www.instagram.com/p/' in root.clipboard_get():
                     url =  root.clipboard_get()
+                    try:
+                        url = search(r"https://www.instagram.com/p/(.*?)/.*", str(url)).group(1)
+                        url = f"https://www.instagram.com/p/{url}/"
+                    except:pass
                     break
             except:
                 pass
@@ -262,3 +266,5 @@ try:
             getClip()
 except KeyboardInterrupt:
    stop()
+
+#:P 270
