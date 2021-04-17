@@ -8,6 +8,8 @@ import urllib.request
 import sys
 from colorama import Fore
 from time import sleep, time
+from os import system
+system("title " + "Devil is Here - instagram:@0xdevil")
 try:
     def banner():
         print(Fore.LIGHTBLUE_EX+'''
