@@ -88,8 +88,23 @@ try:
                     try:
                         url = search(r"https://www.instagram.com/p/(.*?)/.*", str(url)).group(1)
                         url = f"https://www.instagram.com/p/{url}/"
-                    except:pass
-                    break
+                        return main(url)
+                    except:return getClip()  
+                elif 'https://www.instagram.com/stories/' in root.clipboard_get():
+                    url = root.clipboard_get()
+                    try:
+                        url_user = search(r'https://www.instagram.com/stories/(.*?)/(.*?)/', str(url))
+                        id_story = url_user.group(2)
+                        url = f"https://www.instagram.com/{url_user.group(1)}/?__a=1"
+                        r = requests.get(url,headers={
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36',
+        'cookie': f'ig_did=BA986F43-2024-41AB-8C92-0C1D2EE021F4; ig_nrcb=1; mid=YGLS9wALAAFmkgUh9_H2-55YnsOx; shbid=5749; rur=RVA; shbts=1618591091.331925; csrftoken=Is7aXNh5dLawmwrBw9C1z0bhqc4Kx07b; ds_user_id={userid}; sessionid={sessionid}'
+        })              
+                        ids = r.json()['graphql']['user']['id']
+                        user= r.json()['graphql']['user']['username']
+                        get_this_story(id_story, ids, user)
+                    except:return getClip()
+
                 elif 'https://www.instagram.com/' in root.clipboard_get():
                     url =  root.clipboard_get()
                     try:
@@ -105,7 +120,7 @@ try:
                     except:return getClip()
             except:
                 pass
-        return main(url)
+        
 
     def video(r):
         video_url = r.json()['graphql']['shortcode_media']['video_url']
@@ -139,6 +154,52 @@ try:
         else:
             sys.stderr.write("read %d\n" % (readsofar,))
 
+    def get_this_story(id_story, id_user, owner):
+        url = 'https://www.instagram.com/graphql/query/?query_hash=303a4ae99711322310f25250d988f3b7&variables={"reel_ids":["'+id_user+'"],"tag_names":[],"location_ids":[],"highlight_reel_ids":[],"precomposed_overlay":false,"show_story_viewer_list":true,"story_viewer_fetch_count":50}'
+        r = requests.get(url, headers={
+                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36',
+                'cookie': f'ig_did=BA986F43-2024-41AB-8C92-0C1D2EE021F4; ig_nrcb=1; mid=YGLS9wALAAFmkgUh9_H2-55YnsOx; shbid=5749; rur=RVA; shbts=1618591091.331925; csrftoken=Is7aXNh5dLawmwrBw9C1z0bhqc4Kx07b; ds_user_id={userid}; sessionid={sessionid}'
+                })
+        _json = r.json()['data']['reels_media'][0]['items']
+        for __json in _json:
+            if __json['id'] == id_story:
+                    vid = __json['is_video']
+                    if vid:
+                        vid_name= id_story
+                        local_path = os.getcwd() + f'\\{owner}'
+                        if os.path.exists(local_path):
+                                    pass
+                        else:
+                                os.mkdir(local_path)
+                        file_name = local_path + '\\' + str(vid_name) + ".mp4"
+                        if os.path.exists(file_name):
+                                    print(Fore.RED+"Video Already Downloaded !")
+                                    pass
+                        else:  
+                                for url in __json['video_resources']:
+                                    url = url['src']
+                                    print(Fore.YELLOW)
+                                    urllib.request.urlretrieve(url, file_name, reporthook)
+                                    break
+                    else:
+                        url = __json['display_url']
+                        pic_name = __json['id']
+                        local_path = os.getcwd() + f'\\{owner}'
+                        if os.path.exists(local_path):
+                            pass
+                        else:
+                            os.mkdir(local_path)
+                        file_name = local_path + '\\' + str(pic_name) + ".jpg"
+                        if os.path.exists(file_name):
+                                print(Fore.RED+"Pic Already Downloaded !")
+                                pass
+                        else:  
+                            print(Fore.YELLOW)
+                            urllib.request.urlretrieve(url, file_name, reporthook)
+        clearClip()
+        print(Fore.GREEN+"[+] Done")
+        sleep(3)
+        return getClip()
     def story_grab(ids , owner):
         def download_all(ids, owner):
                 url = 'https://www.instagram.com/graphql/query/?query_hash=303a4ae99711322310f25250d988f3b7&variables={"reel_ids":["'+ids+'"],"tag_names":[],"location_ids":[],"highlight_reel_ids":[],"precomposed_overlay":false,"show_story_viewer_list":true,"story_viewer_fetch_count":50}'
